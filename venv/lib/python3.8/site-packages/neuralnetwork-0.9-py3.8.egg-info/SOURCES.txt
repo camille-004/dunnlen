@@ -1,0 +1,11 @@
+README.md
+setup.cfg
+setup.py
+neuralnetwork/Backpropagation.py
+neuralnetwork/FeedForward.py
+neuralnetwork/HyperbolicTangent.py
+neuralnetwork/Sigmoid.py
+neuralnetwork.egg-info/PKG-INFO
+neuralnetwork.egg-info/SOURCES.txt
+neuralnetwork.egg-info/dependency_links.txt
+neuralnetwork.egg-info/top_level.txt

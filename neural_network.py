@@ -5,10 +5,14 @@ class NeuralNetwork:
     """
     A class to implement a neural network
     """
-    def __init__(self, epochs=1000):
-        self.epochs = epochs
 
-    def activation(self, vec, threshold):
+    def __init__(self, epochs, learning_rate=0.01, reg_term=0, layer_dimensions=3):
+        self.epochs = epochs
+        self.learning_rate = learning_rate
+        self.reg_term = reg_term
+        self.layer_dimensions = layer_dimensions
+
+    def activation(self, vec):
         pass
 
     def fit(self, features_train, labels_train):

@@ -8,9 +8,9 @@ class Perceptron(NeuralNetwork):
     """
     A class to implement a single-layer perceptron
     """
-    def __init__(self, epochs, learning_rate=0.01, threshold=0):
-        super().__init__(epochs)
-        self.learning_rate = learning_rate
+
+    def __init__(self, epochs, learning_rate, threshold=0):
+        super().__init__(epochs, learning_rate)
         self.threshold = threshold
 
         # Class attributes
