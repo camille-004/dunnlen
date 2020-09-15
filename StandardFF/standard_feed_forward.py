@@ -12,7 +12,9 @@ class StandardFF(NeuralNetwork):
     TODO:
     1. Finish fit()
     2. Implement loss functions --> compute loss in fit()
-    3. Test
+    3. Implement predict()
+    4. Implement metrics
+    5. Test
     """
 
     def __init__(self, epochs, layer_dimensions, activation_layers):
@@ -122,6 +124,7 @@ class StandardFF(NeuralNetwork):
             connection_params[
                 k] for k in connection_params if 'bias' in connection_params]
         cache = {}
+        activate = 0
 
         for  i in range(len(weights)):
             # Calculate weighted sum
@@ -190,6 +193,7 @@ class StandardFF(NeuralNetwork):
         :return: Updated and final parameters
         """
         assert init_method in ['zeros', 'rand', 'he']
+        params = {}
 
         if init_method == 'zeros':
             params = self.init_weights_zeros(self.layer_dimensions)
