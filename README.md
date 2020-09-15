@@ -21,3 +21,4 @@ All neural networks are created and implemented from scratch using solely NumPy 
 1. Batch sizes
 2. Regularization
 3. Batch normalization
+4. Optimizers by SGD
