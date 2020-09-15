@@ -3,11 +3,15 @@ import numpy as np
 from neural_network import NeuralNetwork
 from utils.activation_fcns import sigmoid, reLu, sigmoid_deriv, reLu_deriv
 
+'''Testing'''
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
 
 class StandardFF(NeuralNetwork):
     """
     A class to implement a standard feed-forward network.
-    Recommended only for small-scale NNs.
+    Useful for any binary classification problem.
 
     TODO:
     1. Finish fit()
@@ -17,10 +21,16 @@ class StandardFF(NeuralNetwork):
     5. Test
     """
 
-    def __init__(self, epochs, layer_dimensions, activation_layers):
-        super().__init__(epochs, layer_dimensions)
+    def __init__(
+            self, epochs, learning_rate, layer_dimensions, activation_layers):
+        super().__init__(epochs, learning_rate)
         self.layer_dimensions = layer_dimensions
-        self.activation_layers = activation_layers
+        self.activation_seq = activation_layers
+
+        self.L = len(self.layer_dimensions)
+        self.params = {}
+        self.losses = []
+        self.activation_Z = None
 
     def activation(self, act_func, vec):
         """
@@ -30,7 +40,6 @@ class StandardFF(NeuralNetwork):
         :param vec: real-valued vector
         :return: result of activation function
         """
-        assert act_func in ['sigmoid', 'reLu']
         if act_func == 'sigmoid':
             return sigmoid(vec)
         elif act_func == 'relu':
@@ -40,6 +49,7 @@ class StandardFF(NeuralNetwork):
     def activation_deriv(act_func, vec, d_act=0):
         """
         Calculate a vector from the derivative of the given activation function
+        Products of layer derivatives computed as loss function derivative
 
         :param act_func: activation function to differentiate
         :param vec: real-valued vector
@@ -52,8 +62,7 @@ class StandardFF(NeuralNetwork):
         elif act_func == 'relu':
             return reLu_deriv(d_act, vec)
 
-    @staticmethod
-    def init_weights_zeros(layer_dimensions):
+    def init_weights_zeros(self, layer_dimensions):
         """
         Initialize the weights with zeros
 
@@ -62,162 +71,224 @@ class StandardFF(NeuralNetwork):
         :return: a dictionary containing the initialized weights and biases for
         each layer
         """
-        # Store connective parameters in dictionary because it's dynamic
-        params = {}
-        for i in range(1, len(layer_dimensions) + 1):
-            params['weight_' + i] = np.zeros(
+        for i in range(1, len(layer_dimensions)):
+            self.params['weight_' + i] = np.zeros(
                 layer_dimensions[i], layer_dimensions[i - 1] * 10)
-            params['bias_' + i] = np.zeros((layer_dimensions[i], 1))
+            self.params['bias_' + i] = np.zeros((layer_dimensions[i], 1))
 
-        return params
-
-    @staticmethod
-    def init_weights_rand(layer_dimensions):
+    def init_weights_rand(self, layer_dimensions):
         """
         Initialize the weights by randomly from dimensions of each layer
 
         :param layer_dimensions: A list containing the number of nodes in each
         layer
-        :return: a dictionary containing the initialized weights and biases for
-        each layer
         """
-        params = {}
-        for i in range(1, len(layer_dimensions) + 1):
-            params['weight_' + i] = np.random.randn(
+        for i in range(1, len(layer_dimensions)):
+            self.params['weight_' + i] = np.random.randn(
                 layer_dimensions[i], layer_dimensions[i - 1] * 10
             )
-            params['bias_' + i] = np.zeros((layer_dimensions[i], 1))
+            self.params['bias_' + i] = np.zeros((layer_dimensions[i], 1))
 
-        return params
-
-    @staticmethod
-    def init_weights_he(layer_dimensions):
+    def init_weights_he(self, layer_dimensions):
         """
         Initialize the weights by method from He et al. (2015)
 
         :param layer_dimensions: A list containing the number of nodes in each
         layer
-        :return: a dictionary containing the initialized weights and biases for
-        each layer
         """
-        params = {}
-        for i in range(1, len(layer_dimensions) + 1):
-            params['weight_' + str(i)] = np.random.randn(
+        for i in range(1, len(layer_dimensions)):
+            self.params['weight_' + str(i)] = np.random.randn(
                 layer_dimensions[i], layer_dimensions[i - 1]) * np.sqrt(
                 2 / layer_dimensions[i - 1])
-            params['bias_' + str(i)] = np.zeros((layer_dimensions[i], 1))
+            self.params['bias_' + str(i)] = np.zeros((layer_dimensions[i], 1))
 
-        return params
-
-    def forward_propagation(self, features_train, connection_params):
+    def forward_propagation(self, features_train):
         """
         Implements forward-propagation algorithm
 
         :param features_train: input dataset for element-wise weighted sum
-        :param connection_params: dictionary of weights and biases
         :return: weighted sum and activation results stored in a cache array
         """
-        weights = [
-            connection_params[
-                k] for k in connection_params if 'weight' in connection_params]
-        biases = [
-            connection_params[
-                k] for k in connection_params if 'bias' in connection_params]
         cache = {}
-        activate = 0
 
-        for  i in range(len(weights)):
-            # Calculate weighted sum
-            z = np.dot(features_train, weights[i]) + biases[i]
-            activate = self.activation(self.activation_layers[i],z)
-            cache['z_' + str(i)] = z
-            cache['act_' + str(i)] = activate
+        # For weighted sum
+        activation_Z = np.array(features_train.T)
 
-        return activate, cache
+        # Exclude the final layer
+        for layer in range(self.L - 1):
+            Z = np.dot(self.params['weight_' + str(layer + 1)], activation_Z) + self.params['bias_' + str(layer + 1)]
+            activation_Z = self.activation(Z, self.activation_seq[layer])
+            cache['act_' + str(layer + 1)] = activation_Z
+            cache['weight_' + str(layer + 1)] = self.params[
+                'weight_' + str(layer + 1)]
+            cache['Z_' + str(layer + 1)] = Z
 
-    def back_propagation(
-            self, activations_result, labels_train, connection_params,
-            forward_cache):
+        # For final output layer, for SoftMax?
+        Z = self.params[
+                'weight_' + str(self.L)].dot(activation_Z) + self.params[
+                'bias_' + str(self.L)]
+        y_hat = self.activation(Z, self.activation_seq[self.L])
+        cache['act_' + str(self.L)] = activation_Z
+        cache['weight_' + str(self.L)] = self.params[
+            'weight_' + str(self.L)]
+        cache['Z_' + str(self.L)] = Z
+
+        return y_hat, cache
+
+    def backward_propagation(self, features_train, labels_train, cache):
         """
         Implements backward-propagation algorithm
 
-        :param activations_result: back-propagation parameter
+        :param features_train: back-propagation parameter
         :param labels_train:
-        :param connection_params:
-        :param forward_cache:
+        :param cache:
         :return: dictionary of gradients
         """
         gradients = {}
-        labels_train = labels_train.reshape(activations_result.shape)
+        cache['act_0'] = features_train.T
+        y_hat = cache['act_' + str(self.L)]
+        dy_hat = -np.divide(
+            labels_train, y_hat) + np.divide(
+            1 - labels_train, 1 - y_hat)
 
-        # Initialize backpropagation
-        d_last_layer = (
-                        (1 - labels_train) / (1 - activations_result)
-                ) - (labels_train / activations_result)
-        d_prev = d_last_layer
+        # Derivative of weighted sum
+        dZ = dy_hat * self.activation_deriv(
+            cache['Z_' + str(self.L)], self.activation_seq[self.L])
+        d_weight = dZ.dot(
+            cache['act_' + str(self.L - 1)].T) / features_train.shape[0]
+        d_bias = np.sum(dZ, axis=1, keepdims=True)
+        dA_prev = cache['weight_' + str(self.L)].T.dot(dZ)
 
-        for i in reversed(range(len(self.layer_dimensions))):
-            curr_d_act = d_prev
+        gradients['weight_' + str(self.L)] = d_weight
+        gradients['bias_' + str(self.L)] = d_bias
 
-            # Get current activation function, weight, weighted sum
-            act_func = self.activation_layers[i]
-            curr_weight = connection_params['weight_' + str(i)]
-            curr_z = forward_cache['z_' + str(i)]
-            prev_act = forward_cache['act_' + str(i - 1)]
+        for layer in range(self.L - 1, 0, -1):
+            # Calculate gradients for backward layers
+            dZ = dA_prev * self.activation_deriv(
+                cache['Z_' + str(layer)], self.activation_seq[layer])
+            dW = 1 / features_train.shape[0] * dZ.dot(
+                cache['act_' + str(layer - 1)].T)
+            db = 1 / features_train.shape[0] * np.sum(
+                dZ, axis=1, keepdims=True)
+            if layer > 1:
+                dA_prev = cache['weight_' + str(layer)].T.dot(dZ)
 
-            if act_func == 'sigmoid':
-                d_curr_z = sigmoid_deriv(curr_d_act, curr_z)
-            elif act_func == 'reLu':
-                d_curr_z = reLu_deriv(curr_d_act, curr_z)
-            d_weight = np.dot(d_curr_z, prev_act.T) / prev_act.shape[1]
-            d_bias = np.sum(d_curr_z, axis=1, keepdims=True) / prev_act.shape[1]
-
-            # Update layer
-            d_prev = np.dot(d_curr_z, curr_weight.T)
-
-            # Update gradients
-            gradients['d_weight_' + str(i)] = d_weight
-            gradients['d_bias_' + str(i)] = d_bias
+            # Update gradients container
+            gradients['weight_' + str(layer)] = dW
+            gradients['bias_' + str(layer)] = db
 
         return gradients
 
-
-    def fit(
-            self, features_train, labels_train, init_method):
+    @staticmethod
+    def loss(activation_result, labels_train):
         """
-        Fit Multi-Layer Perceptron
+        Compute binary cross-entropy loss, AKA log loss
 
-        :param features_train: Feature vectors for forward propagation
-        :param labels_train: Label vectors for backward propagation
-        :param init_method: Weight and bias initialization method
-        :return: Updated and final parameters
+        :param activation_result: Parameter for cross-entropy
+        :param labels_train: Get shape for calculating cross-entropy
+        :return: Result of cost function for each epoch, one-dimensional
+        aspects removed
         """
-        assert init_method in ['zeros', 'rand', 'he']
-        params = {}
+        log_probabilities = np.multiply(
+            np.log(activation_result), labels_train) + np.multiply(
+            1 - labels_train, np.log(1 - activation_result))
+        cost = np.squeeze(-np.sum(log_probabilities) / labels_train.shape)
+        return cost
 
+    def fit(self, features_train, labels_train, init_method):
+        """
+        Fit our model by running f-prop, loss, and b-prop
+
+        :param features_train: Training feature to fit to
+        :param labels_train: Training labels to fit to
+        :param init_method: Method of initializing weights and biases
+        """
+        # Weight needs number of features
+        n_features = features_train.shape[1]
+        self.layer_dimensions.insert(0, n_features)
+
+        # Initialize parameters
         if init_method == 'zeros':
-            params = self.init_weights_zeros(self.layer_dimensions)
+            self.init_weights_zeros(self.layer_dimensions)
         elif init_method == 'rand':
-            params = self.init_weights_rand(self.layer_dimensions)
+            self.init_weights_rand(self.layer_dimensions)
         elif init_method == 'he':
-            params = self.init_weights_he(self.layer_dimensions)
+            self.init_weights_he(self.layer_dimensions)
 
-        for i in range(self.epochs):
-            activations_result, cache = self.forward_propagation(features_train, params)
+        for epoch in range(self.epochs):
+            # Run forward propagation
+            A, cache = self.forward_propagation(features_train)
 
-            gradients = self.back_propagation(activations_result, labels_train, params, cache)
+            # Calculate cost
+            cost = self.loss(A.T, labels_train)
 
-            # Update parameters
-            for j in range(1, len(params) + 1):
-                params[
+            # Run backward propagation
+            gradients = self.backward_propagation(
+                features_train, labels_train)
+
+            # Update params
+            for j in range(1, self.L + 1):
+                self.params[
                     'weight_' + str(j)
-                    ] = params['weight_' + str(j)
-                               ] - self.learning_rate * gradients[
-                    'd_weight' + str(j)]
-                params[
-                    'bias_' + str(j)
-                    ] = params['bias_' + str(j)
-                               ] - self.learning_rate * gradients[
-                    'd_ bias' + str(j)]
+                    ] = self.params[
+                            'weight_' + str(j)
+                            ] - self.learning_rate * gradients[
+                            'd_weight' + str(j)]
+                self.params[
+                    'bias_' + self.params(j)
+                    ] = ['bias_' + str(j)] - self.learning_rate
 
-        return params
+            self.losses.append(cost)
+
+    def predict(self, features_test):
+        """
+        Get predicted output from input into our fitted model
+
+        :param features_test: input dataset from which to generate predictions
+        :return: NumPy array of predictions
+        """
+        A, cache = self.forward_propagation(features_test)
+        res = np.zeros((1, features_test.shape[0]))
+
+        for i in range(A.shape[1]):
+            if A[0, i] > 0.5:
+                res[0, i] = 1
+
+        return res
+
+
+if __name__ == '__main__':
+    n = 100
+
+    data = []
+    for i in range(n):
+        temp = {}
+        temp.update({'temperature': np.random.normal(14, 3)})
+        temp.update({'moisture': np.random.normal(96, 2)})
+
+        label = 0
+        if temp['temperature'] < 10 or temp['temperature'] > 18:
+            label = 1
+        elif temp['moisture'] < 94 or temp['moisture'] > 98:
+            label = 1
+        temp.update({'label': label})
+
+        data.append(temp)
+
+    df = pd.DataFrame(data=data)
+    df.head()
+
+    X = df[['temperature', 'moisture']]
+    y = df['label']
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+    # print("X_train shape: ", X_train.shape)
+    # print("X_test shape: ", X_test.shape)
+    # print("y_train shape: ", y_train.shape)
+    # print("y_test shape: ", y_test.shape)
+
+    layer_dimensions = [40, 20, 10, 5]
+    activation_layers = ['sigmoid', 'reLu', 'reLu', 'sigmoid']
+
+    nn = StandardFF(200, 0.5, layer_dimensions, activation_layers)
+    nn.fit(X_train, y_train, 'he')
