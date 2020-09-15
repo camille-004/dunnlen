@@ -12,3 +12,8 @@ All neural networks are created and implemented from scratch using solely NumPy 
 ## Future Additions
 1. Multi-layer perceptron regressor
 2. ...Other endemic species form the zoo of neural networks.
+
+### Performance Additions
+1. Batch sizes
+2. Regularization
+3. Batch normalization
