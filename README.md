@@ -12,13 +12,14 @@ All neural networks are created and implemented from scratch using solely NumPy 
     * Note: activation functions for MLP classifier are limited to sigmoid and reLu
     * Weights and biases are initialized as either zeros, randomly within parameters set by each layer dimension, or by He initialization (He et al., 2015). Maybe might integrate Xavier initialization on a later date
 
-## Future Additions
+## Ideas for Future Additions
 1. Multi-layer perceptron regressor
 2. ...Other endemic species form the zoo of neural networks.
 3. A "NN_Architecture" object in which to conveniently store activation sequences and layer dimensions. Object will be fed into and parsed by a NeuralNetwork object.
 
 ### Performance Additions
-1. Batch sizes
-2. Regularization
-3. Batch normalization
-4. Optimizers by SGD
+* Batch sizes
+* Regularization
+* Batch normalization
+* Optimizers by (SGD)
+* Automated hyperparameter tuning with hyperopt
