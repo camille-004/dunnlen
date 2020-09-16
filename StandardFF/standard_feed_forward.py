@@ -28,9 +28,9 @@ class StandardFF(NeuralNetwork):
         self.activation_seq = activation_layers
 
         self.L = len(self.layer_dimensions)
+        self.n_examples = None
         self.params = {}
         self.losses = []
-        self.activation_Z = None
 
     def activation(self, act_func, vec):
         """
@@ -42,11 +42,11 @@ class StandardFF(NeuralNetwork):
         """
         if act_func == 'sigmoid':
             return sigmoid(vec)
-        elif act_func == 'relu':
+        elif act_func == 'reLu':
             return reLu(vec)
 
     @staticmethod
-    def activation_deriv(act_func, vec, d_act=0):
+    def activation_deriv(act_func, vec):
         """
         Calculate a vector from the derivative of the given activation function
         Products of layer derivatives computed as loss function derivative
@@ -59,8 +59,8 @@ class StandardFF(NeuralNetwork):
         assert act_func in ['sigmoid', 'reLu']
         if act_func == 'sigmoid':
             return sigmoid_deriv(vec)
-        elif act_func == 'relu':
-            return reLu_deriv(d_act, vec)
+        elif act_func == 'reLu':
+            return reLu_deriv(vec)
 
     def init_weights_zeros(self, layer_dimensions):
         """
@@ -117,7 +117,7 @@ class StandardFF(NeuralNetwork):
         # Exclude the final layer
         for layer in range(self.L - 1):
             Z = np.dot(self.params['weight_' + str(layer + 1)], activation_Z) + self.params['bias_' + str(layer + 1)]
-            activation_Z = self.activation(Z, self.activation_seq[layer])
+            activation_Z = self.activation(self.activation_seq[layer], Z)
             cache['act_' + str(layer + 1)] = activation_Z
             cache['weight_' + str(layer + 1)] = self.params[
                 'weight_' + str(layer + 1)]
@@ -127,7 +127,7 @@ class StandardFF(NeuralNetwork):
         Z = self.params[
                 'weight_' + str(self.L)].dot(activation_Z) + self.params[
                 'bias_' + str(self.L)]
-        y_hat = self.activation(Z, self.activation_seq[self.L])
+        y_hat = self.activation(self.activation_seq[self.L - 1], Z)
         cache['act_' + str(self.L)] = activation_Z
         cache['weight_' + str(self.L)] = self.params[
             'weight_' + str(self.L)]
@@ -179,8 +179,7 @@ class StandardFF(NeuralNetwork):
 
         return gradients
 
-    @staticmethod
-    def loss(activation_result, labels_train):
+    def loss(self, activation_result, labels_train):
         """
         Compute binary cross-entropy loss, AKA log loss
 
@@ -189,11 +188,13 @@ class StandardFF(NeuralNetwork):
         :return: Result of cost function for each epoch, one-dimensional
         aspects removed
         """
-        log_probabilities = np.multiply(
-            np.log(activation_result), labels_train) + np.multiply(
-            1 - labels_train, np.log(1 - activation_result))
-        cost = np.squeeze(-np.sum(log_probabilities) / labels_train.shape)
-        return cost
+        return np.squeeze(
+            -(labels_train.dot(
+                np.log(
+                    activation_result.T
+                )
+            ) + (1 - labels_train).dot(np.log(
+                1 - activation_result.T))) / self.n_examples)
 
     def fit(self, features_train, labels_train, init_method):
         """
@@ -206,6 +207,7 @@ class StandardFF(NeuralNetwork):
         # Weight needs number of features
         n_features = features_train.shape[1]
         self.layer_dimensions.insert(0, n_features)
+        self.n_examples = features_train.shape[0]
 
         # Initialize parameters
         if init_method == 'zeros':
