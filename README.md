@@ -5,7 +5,7 @@ All neural networks are created and implemented from scratch using solely NumPy 
 ### Why "DunnLen?"
 "Dunn" is the first syllable of my surname, which has Scottish origins. As for the "len" part, try saying "learn" in a heavy British accent.
 
-![logo](rsz_logo.png?raw=True)
+![logo](Untitled_design.png?raw=True)
 ## Current Features
 1. A basic single-layer perceptron
 2. A multi-layer perceptron classifer that takes as input user-defined NN architecture (layer-by-layer dimensions and activation functions).
