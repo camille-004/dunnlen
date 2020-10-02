@@ -5,6 +5,5 @@ All neural networks are created and implemented from scratch using solely NumPy 
 ### Why "DunnLen?"
 "Dunn" is the first syllable of my surname, which has Scottish origins. As for the "len" part, try saying "learn" in a heavy British accent.
 
-![logo](logo.png?raw=True)
 ### Provisional Workflow
 ![logo](flowchart.png?raw=True)
