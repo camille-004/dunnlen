@@ -7,4 +7,4 @@ All neural networks are created and implemented from scratch using solely NumPy 
 
 ![logo](logo.png?raw=True)
 ### Provisional Workflow
-![flowchart]
+![logo](flowchart.png?raw=True)
