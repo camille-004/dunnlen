@@ -1,41 +1,36 @@
 import numpy as np
+from layers import Tensor
 
 
 class Opt:
     """Class that implements an optimizer"""
 
-    def __init__(self, lr):
+    def __init__(self, params: list, lr=0.001) -> object:
         self.lr = lr
+        self.cache = {}
+        self.params = params
 
-    def forward(self, grads, w_b):
-        step_vals = self.update(grads)
-        grads = step_vals
-        w_b += grads
+    def retrieve_cache(self, index):
+        return self.cache[index]
+
+    def into_cache(self, index, res):
+        self.cache[index] = res
 
     def update(self):
         raise NotImplementedError
+
+    def reset_grad(self):
+        for param in self.params:
+            param.grads = 0.
 
 
 class SGD(Opt):
     """Stochastic gradient descent"""
 
-    def __init__(self, lr=0.001):
-        super().__init__(lr)
+    def __init__(self):
+        super().__init__()
 
-    def update(self, grads):
-        return -self.lr * grads
+    def update(self):
+        for param in self.params:
+            param.data = param.data - self.lr * param.grads.mean(axis=0)
 
-
-class Momentum(Opt):
-    """Uses laws of motion to pass through local optima, increase speed of
-    convergence"""
-
-    def __init__(self, lr=0.001, gamma=0.9):
-        super().__init__(lr)
-        self.gamma = gamma
-        self.accumulation = 0
-
-    def update(self, grads):
-        self.accumulation = self.gamma * self.accumulation + grads
-        forward = -self.lr * self.accumulation
-        return forward
