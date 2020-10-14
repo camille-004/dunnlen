@@ -11,7 +11,7 @@ class Tensor:
 
 class Layer:
     def __init__(self):
-        pass
+        self.type = 'layer'
 
     def forward(self, *args, **kwargs):
         raise NotImplementedError
@@ -51,23 +51,27 @@ class Dense(Layer):
         self.input = feature_matrix
         return res
 
-    def backward(self, upstream_gradient):
+    def backward(self, upstream_gradient, lr=0.001):
         """
 
         Parameters
         ----------
-        upstream_gradient
-            Gradients of loss function w.r.t. layer output
+        upstream_gradient : Gradients of loss function w.r.t. layer output
+        lr : learning rate
 
         Returns
         -------
         Partial derivative of loss w.r.t. layer input and parameters, will be
         passed to previous layer
         """
-        self.W.grads += np.dot(self.input.T, upstream_gradient)
-        self.b.grads += np.sum(upstream_gradient, axis=0, keepdims=True)
-        grad_input = np.dot(upstream_gradient, self.W.data.T)
-        return grad_input
+        inp_error = np.dot(upstream_gradient, self.W.data.T)
+        print(inp_error)
+        W_error = np.dot(self.input.T, upstream_gradient)
+
+        self.W += lr * W_error
+        self.b += lr * upstream_gradient
+
+        return inp_error
 
     def get_params(self):
         return [self.W, self.b]
@@ -76,21 +80,21 @@ class Dense(Layer):
 class Activation(Layer):
     """Implements an activation layer"""
 
-    def __init___(self, activation, activation_deriv, feature_matrix):
-        super.__init__()
+    def __init__(self, activation, activation_deriv):
+        super().__init__()
         self.activation = activation
         self.activation_deriv = activation_deriv
-        self.feature_matrix = feature_matrix
-        self.result = self.activation(self.feature_matrix)
         self.type = 'activation'
 
-    def forward(self):
+    def forward(self, feature_matrix):
         """Forward propagation for activation layer
 
         Returns
         -------
         activation function of input data
         """
+        self.feature_matrix = feature_matrix
+        self.result = self.activation(self.feature_matrix)
         return self.result
 
     def backward(self, error):

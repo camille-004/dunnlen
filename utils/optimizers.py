@@ -5,8 +5,7 @@ from layers import Tensor
 class Opt:
     """Class that implements an optimizer"""
 
-    def __init__(self, params: list, lr=0.001):
-        self.lr = lr
+    def __init__(self, params: list):
         self.cache = {}
         self.params = params
 
@@ -31,8 +30,9 @@ class Opt:
 class SGD(Opt):
     """Stochastic gradient descent"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, params, lr=0.001):
+        super().__init__(params)
+        self.lr = lr
 
     def update(self):
         for param in self.params:

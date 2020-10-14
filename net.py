@@ -32,7 +32,7 @@ class Net:
                 W.data = self.initializer.create_params(dim=(W.data.shape[0], W.data.shape[1]))
                 b.data = self.initializer.create_params(dim=(1, b.data.shape[1]))
 
-    def fit(self, data, target, epochs, loss, batch_size=32, opt=SGD):
+    def fit(self, data, target, epochs, loss, opt, batch_size=32):
         """
         Fits the neural network
 
@@ -58,11 +58,12 @@ class Net:
                 opt.reset_grad()
                 for layer in self.comp_graph:
                     features = layer.forward(features)
-                loss = loss.compute(features, labels)
-                grad = loss.compute_grad()
+                loss_result = loss.compute(features, labels)
+                grad = loss.compute_grad(features, labels)
+                print(grad.shape)
                 for layer in reversed(self.comp_graph):
                     grad = layer.backward(grad)
-                history += [loss]
+                history += [loss_result]
                 print(
                     f'Loss at epoch #{epoch},'
                     f'iteration #{iteration}: {history[-1]}')
