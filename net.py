@@ -1,14 +1,17 @@
 from utils.get_data import GetData
+from utils.optimizers import SGD
+from utils.initializer import Norm
 
 
 class Net:
     """Class that implements a neural network"""
 
-    def __init__(self, initializer):
+    def __init__(self, initializer='norm'):
         # Create computation graph, define a sequential model
         self.comp_graph = []
         self.params = []
-        self.initializer = initializer
+        if initializer == 'norm':
+            self.initializer = Norm()
 
     def add(self, layer):
         """Adds a layer to the neural network
@@ -26,11 +29,10 @@ class Net:
             if layer.type == 'dense':
                 # Initialize Dense weights and bias
                 W, b = layer.get_params()
-                W.data = self.initializer.create_params(
-                    (W.data.shape[0], W.data.shape[1]))
-                b.data = self.initializer.create_params((1, b.data.shape[1]))
+                W.data = self.initializer.create_params(dim=(W.data.shape[0], W.data.shape[1]))
+                b.data = self.initializer.create_params(dim=(1, b.data.shape[1]))
 
-    def fit(self, data, target, batch_size, epochs, opt, loss):
+    def fit(self, data, target, epochs, loss, batch_size=32, opt=SGD):
         """
         Fits the neural network
 

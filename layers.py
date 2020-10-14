@@ -1,5 +1,4 @@
 import numpy as np
-from utils.initializer import Initializer
 
 
 class Tensor:
@@ -72,3 +71,37 @@ class Dense(Layer):
 
     def get_params(self):
         return [self.W, self.b]
+
+
+class Activation(Layer):
+    """Implements an activation layer"""
+
+    def __init___(self, activation, activation_deriv, feature_matrix):
+        super.__init__()
+        self.activation = activation
+        self.activation_deriv = activation_deriv
+        self.feature_matrix = feature_matrix
+        self.result = self.activation(self.feature_matrix)
+        self.type = 'activation'
+
+    def forward(self):
+        """Forward propagation for activation layer
+
+        Returns
+        -------
+        activation function of input data
+        """
+        return self.result
+
+    def backward(self, error):
+        """Backward propagation for activation layer
+
+        Parameters
+        ----------
+        error : dE / dY
+
+        Returns
+        -------
+        input error dE / dX given output error dE / dY
+        """
+        return self.activation_deriv(self.feature_matrix) * error

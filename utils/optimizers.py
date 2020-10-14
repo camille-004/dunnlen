@@ -37,4 +37,3 @@ class SGD(Opt):
     def update(self):
         for param in self.params:
             param.data = param.data - self.lr * param.grads.mean(axis=0)
-
