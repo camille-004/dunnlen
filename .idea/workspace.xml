@@ -5,10 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ca4751b2-2527-4784-aaea-b7f23bb9f13b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/initializer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/layers.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nn_setup.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/net.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/get_data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/initializer.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/initializer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/layers.py" beforeDir="false" afterPath="$PROJECT_DIR$/layers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/loss_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/loss_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/optimizers.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/optimizers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -114,7 +116,9 @@
       <workItem from="1600211862719" duration="2806000" />
       <workItem from="1601615724560" duration="1059000" />
       <workItem from="1601618823623" duration="12320000" />
-      <workItem from="1601656692704" duration="5155000" />
+      <workItem from="1601656692704" duration="5252000" />
+      <workItem from="1602627976668" duration="797000" />
+      <workItem from="1602667316674" duration="2698000" />
     </task>
     <servers />
   </component>

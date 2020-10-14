@@ -1,10 +1,12 @@
 import numpy as np
-from initializer import Initializer
+from utils.initializer import Initializer
 
 
 class Tensor:
-    def __init__(self, dim: tuple, init: Initializer):
-        self.data = init.create_params(dim)
+    """Class that implements a tensor"""
+
+    def __init__(self, dim: tuple):
+        self.data = np.ndarray(dim, np.float32)
         self.grads = np.ndarray(dim, np.float32)
 
 
@@ -24,11 +26,14 @@ class Layer:
 
 
 class Dense(Layer):
-    def __init__(self, dims: tuple, w_init: Initializer, b_init: Initializer):
+    """Implements an affine transformation dense layer"""
+
+    def __init__(self, dims: tuple):
         super().__init__()
-        self.W = Tensor(w_init.create_params(dims))
-        self.b = Tensor(b_init.create_params(1, dims[1]))
+        self.W = Tensor(dims)
+        self.b = Tensor((1, dims[1]))
         self.input = []
+        self.type = 'dense'
 
     def forward(self, feature_matrix):
         """Affine transformation, and saves input, which is needed to compute
